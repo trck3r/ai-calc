@@ -1,0 +1,44 @@
+
+generator client {
+    provider = "prisma-client-js"
+    binaryTargets = ["native", "linux-musl-arm64-openssl-3.0.x"]
+}
+
+datasource db {
+    provider = "postgresql"
+    url      = env("DATABASE_URL")
+}
+
+model CalculatorResult {
+  id                    String   @id @default(cuid())
+  email                 String
+  currentRevenue        String
+  businessModel         String
+  currentDigitalProducts String[]
+  teamSize              String
+  industry              String
+  aiUsage               String
+  biggestChallenge      String
+  
+  // Calculated results
+  monthlyOpportunity    Float
+  annualOpportunity     Float
+  aiAdvantage          Float
+  timeToBreakEven      Int
+  
+  // Metadata
+  createdAt            DateTime @default(now())
+  updatedAt            DateTime @updatedAt
+  
+  @@map("calculator_results")
+}
+
+model EmailCapture {
+  id                String   @id @default(cuid())
+  email             String   @unique
+  source            String   // "calculator", "landing", etc.
+  calculatorResultId String?
+  createdAt         DateTime @default(now())
+  
+  @@map("email_captures")
+}
