@@ -186,7 +186,7 @@ export default function ResultsDisplay({ results, email }: ResultsDisplayProps) 
           icon={Activity}
           label="System Health"
           value={`${scoreCount}/100`}
-          sublabel={scoreCount < 40 ? 'Needs urgent attention' : scoreCount < 70 ? 'Room for improvement' : 'Healthy foundation'}
+          sublabel={scoreCount < 25 ? 'Critical — needs immediate action' : scoreCount < 45 ? 'Below average — significant gaps' : scoreCount < 65 ? 'Average — room to optimize' : 'Strong foundation'}
           accentClass="metric-blue"
           delay={0.6}
         />

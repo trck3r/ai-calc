@@ -95,13 +95,13 @@ export function calculateResults(inputs: DiagnosticInputs): DiagnosticResults {
   else if (inputs.biggestBottleneck === 'closing') systemScore -= 6;
   else if (inputs.biggestBottleneck === 'delivering') systemScore -= 4;
 
-  systemScore = Math.max(8, Math.min(100, systemScore));
+  systemScore = Math.max(15, Math.min(100, systemScore));
 
   // Weeks to fix estimate
   let weeksToFix: number;
   if (systemScore >= 70) weeksToFix = 2;
-  else if (systemScore >= 50) weeksToFix = 4;
-  else if (systemScore >= 30) weeksToFix = 6;
+  else if (systemScore >= 55) weeksToFix = 4;
+  else if (systemScore >= 35) weeksToFix = 6;
   else weeksToFix = 8;
 
   // Severity level
