@@ -10,13 +10,14 @@ export async function POST(request: NextRequest) {
 
     // Validate required fields
     const requiredFields = [
-      'email', 'currentRevenue', 'businessModel', 'currentDigitalProducts',
-      'teamSize', 'industry', 'aiUsage', 'biggestChallenge',
-      'monthlyOpportunity', 'annualOpportunity', 'aiAdvantage', 'timeToBreakEven'
+      'email', 'monthlyRevenue', 'industry', 'teamSize',
+      'clientSources', 'marketingSetup', 'monthlyAdSpend',
+      'leadFollowUpTime', 'noShowRate', 'biggestBottleneck',
+      'monthlyLeak', 'annualLeak', 'systemScore', 'weeksToFix',
     ];
 
     for (const field of requiredFields) {
-      if (!data[field] && data[field] !== 0) {
+      if (data[field] === undefined || data[field] === null) {
         return NextResponse.json(
           { error: `Missing required field: ${field}` },
           { status: 400 }
@@ -24,49 +25,79 @@ export async function POST(request: NextRequest) {
       }
     }
 
-    // Save calculator result
+    // Save diagnostic result
     const result = await prisma.calculatorResult.create({
       data: {
         email: data.email,
-        currentRevenue: data.currentRevenue,
-        businessModel: data.businessModel,
-        currentDigitalProducts: Array.isArray(data.currentDigitalProducts) 
-          ? data.currentDigitalProducts 
-          : [data.currentDigitalProducts],
-        teamSize: data.teamSize,
+        monthlyRevenue: data.monthlyRevenue,
         industry: data.industry,
-        aiUsage: data.aiUsage,
-        biggestChallenge: data.biggestChallenge,
-        monthlyOpportunity: data.monthlyOpportunity,
-        annualOpportunity: data.annualOpportunity,
-        aiAdvantage: data.aiAdvantage,
-        timeToBreakEven: data.timeToBreakEven,
+        teamSize: data.teamSize,
+        clientSources: Array.isArray(data.clientSources)
+          ? data.clientSources
+          : [data.clientSources],
+        marketingSetup: data.marketingSetup,
+        monthlyAdSpend: data.monthlyAdSpend,
+        leadFollowUpTime: data.leadFollowUpTime,
+        noShowRate: data.noShowRate,
+        biggestBottleneck: data.biggestBottleneck,
+        monthlyLeak: data.monthlyLeak,
+        annualLeak: data.annualLeak,
+        systemScore: data.systemScore,
+        weeksToFix: data.weeksToFix,
+        followUpLeakPct: data.leakBreakdown?.followUpLeak ?? 33,
+        noShowLeakPct: data.leakBreakdown?.noShowLeak ?? 33,
+        systemLeakPct: data.leakBreakdown?.systemLeak ?? 34,
+        recommendations: data.recommendations ?? [],
+        severityLevel: data.severityLevel ?? 'medium',
       },
     });
 
-    // Save email capture
+    // Save email capture (non-blocking)
     try {
       await prisma.emailCapture.upsert({
         where: { email: data.email },
         update: {
-          source: 'calculator',
+          source: 'diagnostic',
           calculatorResultId: result.id,
         },
         create: {
           email: data.email,
-          source: 'calculator',
+          source: 'diagnostic',
           calculatorResultId: result.id,
         },
       });
     } catch (emailError) {
       console.error('Error saving email capture:', emailError);
-      // Don't fail the request if email capture fails
+    }
+
+    // Sync to GHL (non-blocking)
+    try {
+      const baseUrl = request.nextUrl.origin;
+      fetch(`${baseUrl}/api/ghl-sync`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          email: data.email,
+          monthlyRevenue: data.monthlyRevenue,
+          industry: data.industry,
+          teamSize: data.teamSize,
+          marketingSetup: data.marketingSetup,
+          leadFollowUpTime: data.leadFollowUpTime,
+          noShowRate: data.noShowRate,
+          biggestBottleneck: data.biggestBottleneck,
+          monthlyLeak: data.monthlyLeak,
+          systemScore: data.systemScore,
+          severityLevel: data.severityLevel,
+          resultId: result.id,
+        }),
+      }).catch((err) => console.error('GHL sync fire-and-forget error:', err));
+    } catch (ghlError) {
+      console.error('Error initiating GHL sync:', ghlError);
     }
 
     return NextResponse.json({ id: result.id, success: true });
-
   } catch (error) {
-    console.error('Error saving calculator result:', error);
+    console.error('Error saving diagnostic result:', error);
     return NextResponse.json(
       { error: 'Internal server error' },
       { status: 500 }

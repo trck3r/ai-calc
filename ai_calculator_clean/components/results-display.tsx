@@ -1,345 +1,333 @@
 
 'use client';
 
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import { motion } from 'framer-motion';
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
-import { Button } from '@/components/ui/button';
-import { Badge } from '@/components/ui/badge';
-import { Download, Calendar, ArrowRight, TrendingUp, Clock, Target, Zap } from 'lucide-react';
-import { CalculatorResults } from '@/lib/types';
+import { ArrowRight, BookOpen, Phone, TrendingDown, ShieldAlert, Clock, Activity } from 'lucide-react';
+import { DiagnosticResults } from '@/lib/types';
 
 interface ResultsDisplayProps {
-  results: CalculatorResults;
+  results: DiagnosticResults;
   email: string;
 }
 
-export default function ResultsDisplay({ results, email }: ResultsDisplayProps) {
-  const [monthlyCount, setMonthlyCount] = useState(0);
-  const [annualCount, setAnnualCount] = useState(0);
-  const [advantageCount, setAdvantageCount] = useState(0);
+function useCountUp(target: number, duration: number = 2000, delay: number = 0) {
+  const [count, setCount] = useState(0);
+  const startTime = useRef<number | null>(null);
+  const animRef = useRef<number>();
 
   useEffect(() => {
-    // Animate the numbers counting up
-    const monthlyDuration = 2000;
-    const annualDuration = 2500;
-    const advantageDuration = 1500;
+    const timeout = setTimeout(() => {
+      const animate = (timestamp: number) => {
+        if (!startTime.current) startTime.current = timestamp;
+        const elapsed = timestamp - startTime.current;
+        const progress = Math.min(elapsed / duration, 1);
+        // Ease out cubic
+        const eased = 1 - Math.pow(1 - progress, 3);
+        setCount(Math.round(target * eased));
+        if (progress < 1) {
+          animRef.current = requestAnimationFrame(animate);
+        }
+      };
+      animRef.current = requestAnimationFrame(animate);
+    }, delay);
 
-    // Monthly opportunity animation
-    const monthlyInterval = setInterval(() => {
-      setMonthlyCount(prev => {
-        const increment = results.monthlyOpportunity / (monthlyDuration / 50);
-        const next = prev + increment;
-        return next >= results.monthlyOpportunity ? results.monthlyOpportunity : next;
-      });
-    }, 50);
+    return () => {
+      clearTimeout(timeout);
+      if (animRef.current) cancelAnimationFrame(animRef.current);
+    };
+  }, [target, duration, delay]);
 
-    // Annual opportunity animation
-    setTimeout(() => {
-      const annualInterval = setInterval(() => {
-        setAnnualCount(prev => {
-          const increment = results.annualOpportunity / (annualDuration / 50);
-          const next = prev + increment;
-          return next >= results.annualOpportunity ? results.annualOpportunity : next;
-        });
-      }, 50);
+  return count;
+}
 
-      return () => clearInterval(annualInterval);
-    }, 500);
+function MetricCard({
+  icon: Icon,
+  label,
+  value,
+  sublabel,
+  accentClass,
+  delay,
+}: {
+  icon: React.ElementType;
+  label: string;
+  value: string;
+  sublabel: string;
+  accentClass: string;
+  delay: number;
+}) {
+  return (
+    <motion.div
+      initial={{ opacity: 0, y: 20 }}
+      animate={{ opacity: 1, y: 0 }}
+      transition={{ delay, duration: 0.5 }}
+      className={`card-dark rounded-xl p-6 ${accentClass}`}
+    >
+      <Icon className="h-5 w-5 text-gray-500 mb-3" />
+      <div className="text-3xl md:text-4xl font-bold text-white mb-1 count-up">
+        {value}
+      </div>
+      <div className="text-sm font-medium text-gray-300">{label}</div>
+      <div className="text-xs text-gray-500 mt-1">{sublabel}</div>
+    </motion.div>
+  );
+}
 
-    // AI advantage animation
-    setTimeout(() => {
-      const advantageInterval = setInterval(() => {
-        setAdvantageCount(prev => {
-          const increment = results.aiAdvantage / (advantageDuration / 50);
-          const next = prev + increment;
-          return next >= results.aiAdvantage ? results.aiAdvantage : next;
-        });
-      }, 50);
+function LeakBar({
+  label,
+  percentage,
+  color,
+  delay,
+}: {
+  label: string;
+  percentage: number;
+  color: string;
+  delay: number;
+}) {
+  return (
+    <motion.div
+      initial={{ opacity: 0, x: -20 }}
+      animate={{ opacity: 1, x: 0 }}
+      transition={{ delay, duration: 0.4 }}
+      className="space-y-2"
+    >
+      <div className="flex justify-between text-sm">
+        <span className="text-gray-300">{label}</span>
+        <span className="text-gray-400 font-medium">{percentage}%</span>
+      </div>
+      <div className="leak-bar">
+        <motion.div
+          initial={{ width: 0 }}
+          animate={{ width: `${percentage}%` }}
+          transition={{ delay: delay + 0.2, duration: 0.8, ease: 'easeOut' }}
+          className="leak-bar-fill"
+          style={{ background: color }}
+        />
+      </div>
+    </motion.div>
+  );
+}
 
-      return () => clearInterval(advantageInterval);
-    }, 1000);
+export default function ResultsDisplay({ results, email }: ResultsDisplayProps) {
+  const monthlyCount = useCountUp(results.monthlyLeak, 2000, 300);
+  const annualCount = useCountUp(results.annualLeak, 2500, 600);
+  const scoreCount = useCountUp(results.systemScore, 1500, 900);
 
-    return () => clearInterval(monthlyInterval);
-  }, [results]);
-
-  const handleDownloadRoadmap = async () => {
-    // Trigger roadmap PDF download
-    window.open('/api/download-roadmap?email=' + encodeURIComponent(email), '_blank');
+  const handleBookClick = () => {
+    if (typeof window !== 'undefined' && (window as any).fbq) {
+      (window as any).fbq('trackCustom', 'diagnostic_book_click');
+    }
+    window.open('https://book.reactiiv.ai/book/', '_blank');
   };
 
-  const handleBookCall = () => {
-    // Redirect to booking page
-    window.open('https://calendly.com/ai-product-intensive', '_blank');
+  const handleCallClick = () => {
+    if (typeof window !== 'undefined' && (window as any).fbq) {
+      (window as any).fbq('trackCustom', 'diagnostic_call_click');
+    }
+    window.open('https://calendly.com/reactiiv/strategy', '_blank');
+  };
+
+  const severityColors: Record<string, string> = {
+    low: 'text-green-400',
+    medium: 'text-amber-400',
+    high: 'text-orange-400',
+    critical: 'text-red-400',
+  };
+
+  const severityLabels: Record<string, string> = {
+    low: 'Minor leaks detected',
+    medium: 'Moderate revenue leak',
+    high: 'Significant revenue leak',
+    critical: 'Critical system failure',
   };
 
   return (
-    <div className="max-w-4xl mx-auto space-y-8">
-      {/* Primary Results */}
+    <div className="max-w-4xl mx-auto space-y-10">
+      {/* Header */}
       <motion.div
-        initial={{ opacity: 0, y: 30 }}
+        initial={{ opacity: 0, y: 20 }}
         animate={{ opacity: 1, y: 0 }}
         className="text-center"
       >
-        <h1 className="text-3xl md:text-4xl font-bold text-gray-900 mb-4">
-          Your AI Product Revenue Opportunity
+        <p className="text-xs font-medium text-blue-400 uppercase tracking-widest mb-3">
+          Your Diagnostic Results
+        </p>
+        <h1 className="text-3xl md:text-4xl font-bold text-white mb-3">
+          Your Business Is Leaking{' '}
+          <span className="leak-gradient">
+            ${monthlyCount.toLocaleString()}
+          </span>
+          /month
         </h1>
-        <p className="text-lg text-gray-600 mb-8">
-          Based on your business profile, here's what you're potentially leaving on the table
+        <p className={`text-sm font-medium ${severityColors[results.severityLevel]}`}>
+          {severityLabels[results.severityLevel]}
         </p>
       </motion.div>
 
-      {/* Key Metrics Grid */}
-      <div className="grid md:grid-cols-2 lg:grid-cols-4 gap-6">
-        <motion.div
-          initial={{ opacity: 0, y: 20 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ delay: 0.2 }}
-        >
-          <Card className="text-center">
-            <CardContent className="p-6">
-              <DollarSign className="h-8 w-8 text-green-600 mx-auto mb-2" />
-              <div className="text-3xl font-bold text-green-600 mb-1">
-                ${Math.round(monthlyCount).toLocaleString()}
-              </div>
-              <div className="text-sm text-gray-600">Monthly Opportunity</div>
-              <div className="text-xs text-gray-500 mt-1">
-                This is what you're potentially leaving on the table
-              </div>
-            </CardContent>
-          </Card>
-        </motion.div>
-
-        <motion.div
-          initial={{ opacity: 0, y: 20 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ delay: 0.4 }}
-        >
-          <Card className="text-center">
-            <CardContent className="p-6">
-              <TrendingUp className="h-8 w-8 text-blue-600 mx-auto mb-2" />
-              <div className="text-3xl font-bold text-blue-600 mb-1">
-                ${Math.round(annualCount).toLocaleString()}
-              </div>
-              <div className="text-sm text-gray-600">Annual Impact</div>
-              <div className="text-xs text-gray-500 mt-1">
-                Your 12-month opportunity cost
-              </div>
-            </CardContent>
-          </Card>
-        </motion.div>
-
-        <motion.div
-          initial={{ opacity: 0, y: 20 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ delay: 0.6 }}
-        >
-          <Card className="text-center">
-            <CardContent className="p-6">
-              <Zap className="h-8 w-8 text-purple-600 mx-auto mb-2" />
-              <div className="text-3xl font-bold text-purple-600 mb-1">
-                {Math.round(advantageCount)}%
-              </div>
-              <div className="text-sm text-gray-600">AI Advantage</div>
-              <div className="text-xs text-gray-500 mt-1">
-                Revenue increase potential vs traditional products
-              </div>
-            </CardContent>
-          </Card>
-        </motion.div>
-
-        <motion.div
-          initial={{ opacity: 0, y: 20 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ delay: 0.8 }}
-        >
-          <Card className="text-center">
-            <CardContent className="p-6">
-              <Clock className="h-8 w-8 text-orange-600 mx-auto mb-2" />
-              <div className="text-3xl font-bold text-orange-600 mb-1">
-                {results.timeToBreakEven}
-              </div>
-              <div className="text-sm text-gray-600">Days to Break-Even</div>
-              <div className="text-xs text-gray-500 mt-1">
-                Based on typical $2k investment
-              </div>
-            </CardContent>
-          </Card>
-        </motion.div>
+      {/* 4 Metric Cards */}
+      <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
+        <MetricCard
+          icon={TrendingDown}
+          label="Monthly Leak"
+          value={`$${monthlyCount.toLocaleString()}`}
+          sublabel="Revenue lost per month"
+          accentClass="metric-red"
+          delay={0.2}
+        />
+        <MetricCard
+          icon={ShieldAlert}
+          label="Annual Impact"
+          value={`$${annualCount.toLocaleString()}`}
+          sublabel="12-month cost of inaction"
+          accentClass="metric-amber"
+          delay={0.4}
+        />
+        <MetricCard
+          icon={Activity}
+          label="System Health"
+          value={`${scoreCount}/100`}
+          sublabel={scoreCount < 40 ? 'Needs urgent attention' : scoreCount < 70 ? 'Room for improvement' : 'Healthy foundation'}
+          accentClass="metric-blue"
+          delay={0.6}
+        />
+        <MetricCard
+          icon={Clock}
+          label="Weeks to Fix"
+          value={`${results.weeksToFix}`}
+          sublabel="Estimated with the right system"
+          accentClass="metric-green"
+          delay={0.8}
+        />
       </div>
 
-      {/* Industry Benchmark */}
+      {/* Leak Breakdown */}
       <motion.div
         initial={{ opacity: 0, y: 20 }}
         animate={{ opacity: 1, y: 0 }}
         transition={{ delay: 1.0 }}
+        className="card-dark rounded-xl p-6"
       >
-        <Card>
-          <CardHeader>
-            <CardTitle className="flex items-center">
-              <Target className="h-5 w-5 mr-2" />
-              Industry Benchmark
-            </CardTitle>
-          </CardHeader>
-          <CardContent>
-            <p className="text-gray-700">{results.industryBenchmark}</p>
-            <div className="mt-4 p-4 bg-blue-50 rounded-lg">
-              <p className="text-sm text-blue-800">
-                <strong>Competitive Gap:</strong> While 77% of businesses are exploring AI, only 35% have implemented it. 
-                This is your window of opportunity to gain first-mover advantage.
-              </p>
-            </div>
-          </CardContent>
-        </Card>
+        <h3 className="text-lg font-semibold text-white mb-1">Where You're Leaking</h3>
+        <p className="text-sm text-gray-500 mb-6">Breakdown of your revenue loss by category</p>
+        <div className="space-y-5">
+          <LeakBar
+            label="Slow Lead Follow-Up"
+            percentage={results.leakBreakdown.followUpLeak}
+            color="linear-gradient(90deg, #ef4444, #f87171)"
+            delay={1.1}
+          />
+          <LeakBar
+            label="No-Shows & Drop-Off"
+            percentage={results.leakBreakdown.noShowLeak}
+            color="linear-gradient(90deg, #f59e0b, #fbbf24)"
+            delay={1.2}
+          />
+          <LeakBar
+            label="System & Automation Gaps"
+            percentage={results.leakBreakdown.systemLeak}
+            color="linear-gradient(90deg, #3b82f6, #60a5fa)"
+            delay={1.3}
+          />
+        </div>
       </motion.div>
 
-      {/* Personalized Recommendations */}
-      <motion.div
-        initial={{ opacity: 0, y: 20 }}
-        animate={{ opacity: 1, y: 0 }}
-        transition={{ delay: 1.2 }}
-      >
-        <Card>
-          <CardHeader>
-            <CardTitle>Personalized AI Product Opportunities</CardTitle>
-          </CardHeader>
-          <CardContent>
-            <div className="grid md:grid-cols-3 gap-4">
-              {results.recommendations.map((recommendation, index) => (
-                <div key={index} className="p-4 border rounded-lg">
-                  <Badge variant="secondary" className="mb-2">
-                    Recommended for you
-                  </Badge>
-                  <h4 className="font-semibold text-gray-900 mb-2">
-                    {recommendation}
-                  </h4>
-                  <p className="text-sm text-gray-600">
-                    High-impact AI enhancement for your specific business model and challenges.
-                  </p>
-                </div>
-              ))}
-            </div>
-          </CardContent>
-        </Card>
-      </motion.div>
-
-      {/* 7-Step Roadmap Preview */}
+      {/* Recommendations */}
       <motion.div
         initial={{ opacity: 0, y: 20 }}
         animate={{ opacity: 1, y: 0 }}
         transition={{ delay: 1.4 }}
+        className="card-dark rounded-xl p-6"
       >
-        <Card>
-          <CardHeader>
-            <CardTitle>Your 7-Step AI Product Roadmap</CardTitle>
-          </CardHeader>
-          <CardContent>
-            <div className="grid md:grid-cols-2 gap-6">
-              <div>
-                <h4 className="font-semibold text-gray-900 mb-4">What you'll get:</h4>
-                <ul className="space-y-2 text-sm text-gray-700">
-                  <li className="flex items-start">
-                    <span className="w-2 h-2 bg-blue-600 rounded-full mt-2 mr-3 flex-shrink-0"></span>
-                    Step-by-step implementation guide tailored to your business
-                  </li>
-                  <li className="flex items-start">
-                    <span className="w-2 h-2 bg-blue-600 rounded-full mt-2 mr-3 flex-shrink-0"></span>
-                    AI tools and templates for rapid product development
-                  </li>
-                  <li className="flex items-start">
-                    <span className="w-2 h-2 bg-blue-600 rounded-full mt-2 mr-3 flex-shrink-0"></span>
-                    Launch strategy based on your revenue and industry
-                  </li>
-                  <li className="flex items-start">
-                    <span className="w-2 h-2 bg-blue-600 rounded-full mt-2 mr-3 flex-shrink-0"></span>
-                    Performance optimization checklist
-                  </li>
-                </ul>
+        <h3 className="text-lg font-semibold text-white mb-1">Your Top 3 Fixes</h3>
+        <p className="text-sm text-gray-500 mb-6">Personalized recommendations based on your diagnostic</p>
+        <div className="space-y-4">
+          {results.recommendations.map((rec, i) => (
+            <div key={i} className="flex gap-4">
+              <div className="flex-shrink-0 w-8 h-8 rounded-full bg-blue-500/10 border border-blue-500/20 flex items-center justify-center">
+                <span className="text-sm font-bold text-blue-400">{i + 1}</span>
               </div>
-              <div className="flex flex-col justify-center">
-                <Button 
-                  onClick={handleDownloadRoadmap}
-                  className="mb-4 bg-blue-600 hover:bg-blue-700"
-                >
-                  <Download className="w-4 h-4 mr-2" />
-                  Download Your Roadmap (PDF)
-                </Button>
-                <p className="text-xs text-gray-500 text-center">
-                  Sent to {email}
-                </p>
-              </div>
+              <p className="text-sm text-gray-300 leading-relaxed pt-1">{rec}</p>
             </div>
-          </CardContent>
-        </Card>
+          ))}
+        </div>
       </motion.div>
 
-      {/* Call to Action */}
+      {/* Social Proof */}
       <motion.div
         initial={{ opacity: 0, y: 20 }}
         animate={{ opacity: 1, y: 0 }}
         transition={{ delay: 1.6 }}
-        className="text-center"
+        className="card-dark rounded-xl p-6 text-center"
       >
-        <Card className="bg-gradient-to-r from-blue-600 to-purple-600 text-white">
-          <CardContent className="p-8">
-            <h2 className="text-2xl font-bold mb-4">
-              Ready to Capture Your ${Math.round(results.monthlyOpportunity).toLocaleString()}/Month Opportunity?
-            </h2>
-            <p className="text-blue-100 mb-6 max-w-2xl mx-auto">
-              Join the next AI Product Launch Intensive and build your AI-enhanced digital product in just 7 days 
-              with our proven done-with-you system.
-            </p>
-            
-            <div className="space-y-4 mb-6">
-              <div className="flex items-center justify-center text-blue-100">
-                <span className="w-2 h-2 bg-blue-300 rounded-full mr-3"></span>
-                7-day done-with-you implementation program
-              </div>
-              <div className="flex items-center justify-center text-blue-100">
-                <span className="w-2 h-2 bg-blue-300 rounded-full mr-3"></span>
-                AI tools, templates, and automation setup included
-              </div>
-              <div className="flex items-center justify-center text-blue-100">
-                <span className="w-2 h-2 bg-blue-300 rounded-full mr-3"></span>
-                30-day revenue guarantee or full refund
-              </div>
-            </div>
-
-            <Button 
-              onClick={handleBookCall}
-              size="lg"
-              className="bg-white text-blue-600 hover:bg-gray-100 font-semibold"
-            >
-              <Calendar className="w-5 h-5 mr-2" />
-              Book Strategy Call (Only 20 Spots Available)
-              <ArrowRight className="w-5 h-5 ml-2" />
-            </Button>
-            
-            <p className="text-xs text-blue-200 mt-4">
-              Limited to 20 operators per intensive • Next cohort starts January 15th
-            </p>
-          </CardContent>
-        </Card>
+        <p className="text-xs font-medium text-gray-500 uppercase tracking-widest mb-3">Case Study</p>
+        <p className="text-2xl font-bold text-white mb-2">
+          <span className="text-gray-500">$30K/mo</span>
+          <span className="mx-3 text-gray-600">&rarr;</span>
+          <span className="stat-gradient">$105K/mo</span>
+        </p>
+        <p className="text-sm text-gray-400 max-w-md mx-auto">
+          Sugar Studios went from $30K to $105K/month in gross revenue after we rebuilt their
+          marketing and sales system from scratch. Same team. Same service. Better infrastructure.
+        </p>
       </motion.div>
-    </div>
-  );
-}
 
-function DollarSign({ className }: { className?: string }) {
-  return (
-    <svg
-      className={className}
-      fill="none"
-      stroke="currentColor"
-      viewBox="0 0 24 24"
-      xmlns="http://www.w3.org/2000/svg"
-    >
-      <path
-        strokeLinecap="round"
-        strokeLinejoin="round"
-        strokeWidth={2}
-        d="M12 8c-1.657 0-3 .895-3 2s1.343 2 3 2 3 .895 3 2-1.343 2-3 2m0-8c1.11 0 2.08.402 2.599 1M12 8V7m0 1v8m0 0v1m0-1c-1.11 0-2.08-.402-2.599-1"
-      />
-    </svg>
+      {/* Dual CTA */}
+      <motion.div
+        initial={{ opacity: 0, y: 20 }}
+        animate={{ opacity: 1, y: 0 }}
+        transition={{ delay: 1.8 }}
+        className="space-y-4"
+      >
+        {/* Primary: Book CTA */}
+        <div className="card-dark rounded-xl p-8 text-center">
+          <h3 className="text-xl font-bold text-white mb-2">
+            Get the Playbook to Fix This
+          </h3>
+          <p className="text-sm text-gray-400 mb-6 max-w-lg mx-auto">
+            10 chapters. Real case studies. The exact system that took a business
+            from $30K to $105K/month. Everything you need to close the leaks yourself.
+          </p>
+          <button
+            onClick={handleBookClick}
+            className="cta-btn-primary rounded-lg px-8 py-4 text-base font-semibold text-white inline-flex items-center gap-2"
+          >
+            <BookOpen className="w-5 h-5" />
+            Get the Book — $27
+            <ArrowRight className="w-4 h-4" />
+          </button>
+          <p className="text-xs text-gray-500 mt-3">
+            Instant digital delivery &middot; 10 chapters &middot; Actionable frameworks
+          </p>
+        </div>
+
+        {/* Secondary: Call CTA */}
+        <div className="card-dark rounded-xl p-6 text-center">
+          <p className="text-sm text-gray-400 mb-3">
+            Want to skip ahead?
+          </p>
+          <button
+            onClick={handleCallClick}
+            className="text-sm font-medium text-blue-400 hover:text-blue-300 transition-colors inline-flex items-center gap-2"
+          >
+            <Phone className="w-4 h-4" />
+            Book a strategy call — see what this system looks like built for your business
+            <ArrowRight className="w-3 h-3" />
+          </button>
+          <p className="text-xs text-gray-500 mt-2">
+            30 minutes &middot; No pitch &middot; Just clarity
+          </p>
+        </div>
+      </motion.div>
+
+      {/* Footer */}
+      <div className="text-center pt-4 pb-8">
+        <p className="text-xs text-gray-600">
+          Results sent to {email} &middot; Powered by{' '}
+          <a href="https://reactiiv.ai" className="text-blue-500 hover:text-blue-400 transition-colors">
+            Reactiiv
+          </a>
+        </p>
+      </div>
+    </div>
   );
 }

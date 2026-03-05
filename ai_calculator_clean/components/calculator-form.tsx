@@ -4,91 +4,203 @@
 import React, { useState } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { Button } from '@/components/ui/button';
-import { Card, CardContent } from '@/components/ui/card';
-import { Progress } from '@/components/ui/progress';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
-import { RadioGroup, RadioGroupItem } from '@/components/ui/radio-group';
 import { Checkbox } from '@/components/ui/checkbox';
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
-import { ArrowRight, ArrowLeft, Calculator, DollarSign, Users, Zap } from 'lucide-react';
-import { CalculatorInputs } from '@/lib/types';
+import { ArrowRight, ArrowLeft, DollarSign, Target, AlertTriangle, Calculator } from 'lucide-react';
+import { DiagnosticInputs } from '@/lib/types';
 
 interface CalculatorFormProps {
-  onSubmit: (data: CalculatorInputs & { email: string }) => void;
+  onSubmit: (data: DiagnosticInputs & { email: string }) => void;
 }
 
+// Step 1: Your Business
 const REVENUE_OPTIONS = [
-  { value: '5k-10k', label: '$5k-$10k' },
-  { value: '10k-15k', label: '$10k-$15k' },
-  { value: '15k-20k', label: '$15k-$20k' },
-  { value: '20k-25k', label: '$20k-$25k' },
-  { value: '25k-30k', label: '$25k-$30k' },
-  { value: '30k-plus', label: '$30k+' }
-];
-
-const BUSINESS_MODEL_OPTIONS = [
-  { value: 'service-based', label: 'Service-based business' },
-  { value: 'ecommerce', label: 'E-commerce/Physical products' },
-  { value: 'saas', label: 'SaaS/Software' },
-  { value: 'consulting', label: 'Consulting/Coaching' },
-  { value: 'agency', label: 'Agency' },
-  { value: 'other', label: 'Other' }
-];
-
-const DIGITAL_PRODUCTS = [
-  { value: 'none', label: 'None' },
-  { value: 'basic-course', label: 'Basic course/ebook' },
-  { value: 'membership-site', label: 'Membership site' },
-  { value: 'software-tool', label: 'Software tool' },
-  { value: 'templates-resources', label: 'Templates/Resources' }
-];
-
-const TEAM_SIZE_OPTIONS = [
-  { value: 'solo', label: 'Solo operator' },
-  { value: '2-5', label: '2-5 team members' },
-  { value: '6-10', label: '6-10 team members' },
-  { value: '10-plus', label: '10+ team members' }
+  { value: '30k-50k', label: '$30K – $50K' },
+  { value: '50k-75k', label: '$50K – $75K' },
+  { value: '75k-100k', label: '$75K – $100K' },
+  { value: '100k-150k', label: '$100K – $150K' },
+  { value: '150k-plus', label: '$150K+' },
 ];
 
 const INDUSTRY_OPTIONS = [
-  { value: 'marketing-advertising', label: 'Marketing/Advertising' },
-  { value: 'business-consulting', label: 'Business Consulting' },
-  { value: 'health-fitness', label: 'Health/Fitness' },
-  { value: 'finance-accounting', label: 'Finance/Accounting' },
-  { value: 'technology', label: 'Technology' },
+  { value: 'med-spa', label: 'Med Spa / Aesthetics' },
+  { value: 'coaching', label: 'Coaching / Consulting' },
+  { value: 'agency', label: 'Agency' },
+  { value: 'home-services', label: 'Home Services' },
+  { value: 'health-fitness', label: 'Health / Fitness' },
   { value: 'real-estate', label: 'Real Estate' },
-  { value: 'education', label: 'Education' },
   { value: 'ecommerce', label: 'E-commerce' },
-  { value: 'other', label: 'Other' }
+  { value: 'education', label: 'Education / Training' },
+  { value: 'other', label: 'Other' },
 ];
 
-const AI_USAGE_OPTIONS = [
-  { value: 'not-using', label: 'Not using AI at all' },
-  { value: 'basic-tools', label: 'Basic AI tools (ChatGPT, etc.)' },
-  { value: 'content-creation', label: 'AI for content creation' },
-  { value: 'business-processes', label: 'AI for business processes' },
-  { value: 'advanced-integration', label: 'Advanced AI integration' }
+const TEAM_SIZE_OPTIONS = [
+  { value: 'solo', label: 'Just me' },
+  { value: '2-5', label: '2–5' },
+  { value: '6-15', label: '6–15' },
+  { value: '15-plus', label: '15+' },
 ];
 
-const CHALLENGE_OPTIONS = [
-  { value: 'scaling', label: 'Scaling without more time investment' },
-  { value: 'leads', label: 'Generating consistent leads' },
-  { value: 'conversion', label: 'Converting prospects to customers' },
-  { value: 'efficiency', label: 'Delivering services efficiently' },
-  { value: 'revenue', label: 'Creating predictable revenue' }
+// Step 2: Your Marketing
+const CLIENT_SOURCE_OPTIONS = [
+  { value: 'referrals', label: 'Referrals / Word of Mouth' },
+  { value: 'meta-ads', label: 'Meta / IG Ads' },
+  { value: 'google-ads', label: 'Google Ads' },
+  { value: 'seo-content', label: 'SEO / Content' },
+  { value: 'cold-outreach', label: 'Cold Outreach' },
+  { value: 'other', label: 'Other' },
 ];
+
+const MARKETING_SETUP_OPTIONS = [
+  { value: 'no-system', label: 'No system — I wing it' },
+  { value: 'diy-tools', label: 'DIY with tools (Mailchimp, HubSpot, etc.)' },
+  { value: 'agency', label: 'Hired an agency' },
+  { value: 'internal-team', label: 'Built internal team' },
+];
+
+const AD_SPEND_OPTIONS = [
+  { value: '0', label: '$0' },
+  { value: 'under-2k', label: 'Under $2K' },
+  { value: '2k-5k', label: '$2K – $5K' },
+  { value: '5k-10k', label: '$5K – $10K' },
+  { value: '10k-plus', label: '$10K+' },
+];
+
+// Step 3: Your Bottlenecks
+const FOLLOW_UP_OPTIONS = [
+  { value: 'under-5-min', label: 'Under 5 minutes' },
+  { value: 'under-1-hour', label: 'Under 1 hour' },
+  { value: 'same-day', label: 'Same day' },
+  { value: 'next-day-plus', label: 'Next day or later' },
+  { value: 'dont-know', label: "I don't know" },
+];
+
+const NO_SHOW_OPTIONS = [
+  { value: 'under-10', label: 'Under 10%' },
+  { value: '10-25', label: '10–25%' },
+  { value: '25-50', label: '25–50%' },
+  { value: 'over-50', label: 'Over 50%' },
+  { value: 'dont-track', label: "I don't track it" },
+];
+
+const BOTTLENECK_OPTIONS = [
+  { value: 'getting-leads', label: 'Getting enough leads' },
+  { value: 'converting-leads', label: 'Converting leads to calls' },
+  { value: 'showing-up', label: 'Getting people to show up' },
+  { value: 'closing', label: 'Closing on calls' },
+  { value: 'delivering', label: 'Delivering without me involved' },
+];
+
+const STEP_ICONS = [DollarSign, Target, AlertTriangle, Calculator];
+const STEP_TITLES = ['Your Business', 'Your Marketing', 'Your Bottlenecks', 'Get Your Results'];
+const STEP_DESCRIPTIONS = [
+  'Tell us about your business so we can benchmark your systems.',
+  'How are you getting and managing leads today?',
+  'Where are the gaps costing you the most?',
+  'See exactly how much revenue your business is leaking — and what to do about it.',
+];
+
+function OptionCard({
+  value,
+  label,
+  selected,
+  onClick,
+}: {
+  value: string;
+  label: string;
+  selected: boolean;
+  onClick: () => void;
+}) {
+  return (
+    <button
+      type="button"
+      onClick={onClick}
+      className={`option-card w-full text-left rounded-lg px-4 py-3 text-sm font-medium transition-all ${
+        selected
+          ? 'selected border-blue-500/50 bg-blue-500/8 text-white'
+          : 'text-gray-300 hover:text-white'
+      }`}
+    >
+      {label}
+    </button>
+  );
+}
+
+function CheckboxCard({
+  value,
+  label,
+  checked,
+  onChange,
+}: {
+  value: string;
+  label: string;
+  checked: boolean;
+  onChange: (checked: boolean) => void;
+}) {
+  return (
+    <button
+      type="button"
+      onClick={() => onChange(!checked)}
+      className={`option-card w-full text-left rounded-lg px-4 py-3 text-sm font-medium flex items-center gap-3 transition-all ${
+        checked
+          ? 'selected border-blue-500/50 bg-blue-500/8 text-white'
+          : 'text-gray-300 hover:text-white'
+      }`}
+    >
+      <Checkbox
+        checked={checked}
+        onCheckedChange={onChange}
+        className="pointer-events-none border-white/20 data-[state=checked]:bg-blue-500 data-[state=checked]:border-blue-500"
+      />
+      {label}
+    </button>
+  );
+}
+
+function SelectCard({
+  options,
+  value,
+  onChange,
+  label,
+}: {
+  options: { value: string; label: string }[];
+  value: string | undefined;
+  onChange: (value: string) => void;
+  label: string;
+}) {
+  return (
+    <div className="space-y-2">
+      <Label className="text-sm font-medium text-gray-400">{label}</Label>
+      <div className="grid gap-2">
+        {options.map((option) => (
+          <OptionCard
+            key={option.value}
+            value={option.value}
+            label={option.label}
+            selected={value === option.value}
+            onClick={() => onChange(option.value)}
+          />
+        ))}
+      </div>
+    </div>
+  );
+}
 
 export default function CalculatorForm({ onSubmit }: CalculatorFormProps) {
   const [currentStep, setCurrentStep] = useState(0);
-  const [formData, setFormData] = useState<Partial<CalculatorInputs & { email: string }>>({
-    currentDigitalProducts: []
+  const [formData, setFormData] = useState<Partial<DiagnosticInputs & { email: string }>>({
+    clientSources: [],
   });
 
   const totalSteps = 4;
   const progress = ((currentStep + 1) / totalSteps) * 100;
 
   const handleNext = () => {
+    // Fire Meta Pixel event on step 1 start
+    if (currentStep === 0 && typeof window !== 'undefined' && (window as any).fbq) {
+      (window as any).fbq('trackCustom', 'diagnostic_started');
+    }
     if (currentStep < totalSteps - 1) {
       setCurrentStep(currentStep + 1);
     }
@@ -100,260 +212,197 @@ export default function CalculatorForm({ onSubmit }: CalculatorFormProps) {
     }
   };
 
-  const handleDigitalProductChange = (value: string, checked: boolean) => {
-    const current = formData.currentDigitalProducts || [];
+  const handleClientSourceChange = (value: string, checked: boolean) => {
+    const current = formData.clientSources || [];
     if (checked) {
-      setFormData({
-        ...formData,
-        currentDigitalProducts: [...current, value]
-      });
+      setFormData({ ...formData, clientSources: [...current, value] });
     } else {
-      setFormData({
-        ...formData,
-        currentDigitalProducts: current.filter(item => item !== value)
-      });
+      setFormData({ ...formData, clientSources: current.filter((s) => s !== value) });
     }
   };
 
   const handleSubmit = () => {
-    if (isFormValid()) {
-      onSubmit(formData as CalculatorInputs & { email: string });
+    if (isStepValid()) {
+      // Fire Meta Pixel event
+      if (typeof window !== 'undefined' && (window as any).fbq) {
+        (window as any).fbq('trackCustom', 'diagnostic_completed');
+      }
+      onSubmit(formData as DiagnosticInputs & { email: string });
     }
   };
 
   const isStepValid = () => {
     switch (currentStep) {
       case 0:
-        return formData.currentRevenue && formData.businessModel;
+        return formData.monthlyRevenue && formData.industry && formData.teamSize;
       case 1:
-        return formData.currentDigitalProducts && formData.aiUsage;
+        return (
+          formData.clientSources &&
+          formData.clientSources.length > 0 &&
+          formData.marketingSetup &&
+          formData.monthlyAdSpend
+        );
       case 2:
-        return formData.industry && formData.teamSize && formData.biggestChallenge;
+        return formData.leadFollowUpTime && formData.noShowRate && formData.biggestBottleneck;
       case 3:
-        return formData.email;
+        return formData.email && formData.email.includes('@');
       default:
         return false;
     }
   };
 
-  const isFormValid = () => {
-    return formData.currentRevenue && 
-           formData.businessModel && 
-           formData.currentDigitalProducts &&
-           formData.aiUsage && 
-           formData.industry && 
-           formData.teamSize && 
-           formData.biggestChallenge &&
-           formData.email;
-  };
+  const StepIcon = STEP_ICONS[currentStep];
 
   const renderStep = () => {
     switch (currentStep) {
       case 0:
         return (
           <motion.div
-            initial={{ opacity: 0, x: 50 }}
+            key="step-0"
+            initial={{ opacity: 0, x: 40 }}
             animate={{ opacity: 1, x: 0 }}
-            exit={{ opacity: 0, x: -50 }}
+            exit={{ opacity: 0, x: -40 }}
+            transition={{ duration: 0.3 }}
             className="space-y-6"
           >
-            <div className="text-center mb-6">
-              <DollarSign className="mx-auto h-12 w-12 text-blue-600 mb-4" />
-              <h2 className="text-2xl font-bold text-gray-900">Business Basics</h2>
-              <p className="text-gray-600 mt-2">Let's understand your current business foundation</p>
-            </div>
-
-            <div className="space-y-4">
-              <div>
-                <Label className="text-base font-semibold">Current Monthly Revenue</Label>
-                <Select value={formData.currentRevenue} onValueChange={(value) => setFormData({...formData, currentRevenue: value})}>
-                  <SelectTrigger className="mt-2">
-                    <SelectValue placeholder="Select your revenue range" />
-                  </SelectTrigger>
-                  <SelectContent>
-                    {REVENUE_OPTIONS.map((option) => (
-                      <SelectItem key={option.value} value={option.value}>
-                        {option.label}
-                      </SelectItem>
-                    ))}
-                  </SelectContent>
-                </Select>
-              </div>
-
-              <div>
-                <Label className="text-base font-semibold">Primary Business Model</Label>
-                <RadioGroup 
-                  value={formData.businessModel} 
-                  onValueChange={(value) => setFormData({...formData, businessModel: value})}
-                  className="mt-2"
-                >
-                  {BUSINESS_MODEL_OPTIONS.map((option) => (
-                    <div key={option.value} className="flex items-center space-x-2">
-                      <RadioGroupItem value={option.value} id={option.value} />
-                      <Label htmlFor={option.value}>{option.label}</Label>
-                    </div>
-                  ))}
-                </RadioGroup>
-              </div>
-            </div>
+            <SelectCard
+              label="Monthly Revenue"
+              options={REVENUE_OPTIONS}
+              value={formData.monthlyRevenue}
+              onChange={(v) => setFormData({ ...formData, monthlyRevenue: v })}
+            />
+            <SelectCard
+              label="Industry"
+              options={INDUSTRY_OPTIONS}
+              value={formData.industry}
+              onChange={(v) => setFormData({ ...formData, industry: v })}
+            />
+            <SelectCard
+              label="Team Size"
+              options={TEAM_SIZE_OPTIONS}
+              value={formData.teamSize}
+              onChange={(v) => setFormData({ ...formData, teamSize: v })}
+            />
           </motion.div>
         );
 
       case 1:
         return (
           <motion.div
-            initial={{ opacity: 0, x: 50 }}
+            key="step-1"
+            initial={{ opacity: 0, x: 40 }}
             animate={{ opacity: 1, x: 0 }}
-            exit={{ opacity: 0, x: -50 }}
+            exit={{ opacity: 0, x: -40 }}
+            transition={{ duration: 0.3 }}
             className="space-y-6"
           >
-            <div className="text-center mb-6">
-              <Zap className="mx-auto h-12 w-12 text-blue-600 mb-4" />
-              <h2 className="text-2xl font-bold text-gray-900">Current State</h2>
-              <p className="text-gray-600 mt-2">Tell us about your existing products and AI usage</p>
-            </div>
-
-            <div className="space-y-4">
-              <div>
-                <Label className="text-base font-semibold">Current Digital Products (select all that apply)</Label>
-                <div className="mt-2 space-y-2">
-                  {DIGITAL_PRODUCTS.map((product) => (
-                    <div key={product.value} className="flex items-center space-x-2">
-                      <Checkbox
-                        id={product.value}
-                        checked={formData.currentDigitalProducts?.includes(product.value) || false}
-                        onCheckedChange={(checked) => handleDigitalProductChange(product.value, checked as boolean)}
-                      />
-                      <Label htmlFor={product.value}>{product.label}</Label>
-                    </div>
-                  ))}
-                </div>
-              </div>
-
-              <div>
-                <Label className="text-base font-semibold">Current AI Usage</Label>
-                <RadioGroup 
-                  value={formData.aiUsage} 
-                  onValueChange={(value) => setFormData({...formData, aiUsage: value})}
-                  className="mt-2"
-                >
-                  {AI_USAGE_OPTIONS.map((option) => (
-                    <div key={option.value} className="flex items-center space-x-2">
-                      <RadioGroupItem value={option.value} id={option.value} />
-                      <Label htmlFor={option.value}>{option.label}</Label>
-                    </div>
-                  ))}
-                </RadioGroup>
+            <div className="space-y-2">
+              <Label className="text-sm font-medium text-gray-400">
+                How do you get clients now? (select all)
+              </Label>
+              <div className="grid gap-2">
+                {CLIENT_SOURCE_OPTIONS.map((option) => (
+                  <CheckboxCard
+                    key={option.value}
+                    value={option.value}
+                    label={option.label}
+                    checked={formData.clientSources?.includes(option.value) || false}
+                    onChange={(checked) => handleClientSourceChange(option.value, checked)}
+                  />
+                ))}
               </div>
             </div>
+            <SelectCard
+              label="Current marketing setup"
+              options={MARKETING_SETUP_OPTIONS}
+              value={formData.marketingSetup}
+              onChange={(v) => setFormData({ ...formData, marketingSetup: v })}
+            />
+            <SelectCard
+              label="Monthly ad spend"
+              options={AD_SPEND_OPTIONS}
+              value={formData.monthlyAdSpend}
+              onChange={(v) => setFormData({ ...formData, monthlyAdSpend: v })}
+            />
           </motion.div>
         );
 
       case 2:
         return (
           <motion.div
-            initial={{ opacity: 0, x: 50 }}
+            key="step-2"
+            initial={{ opacity: 0, x: 40 }}
             animate={{ opacity: 1, x: 0 }}
-            exit={{ opacity: 0, x: -50 }}
+            exit={{ opacity: 0, x: -40 }}
+            transition={{ duration: 0.3 }}
             className="space-y-6"
           >
-            <div className="text-center mb-6">
-              <Users className="mx-auto h-12 w-12 text-blue-600 mb-4" />
-              <h2 className="text-2xl font-bold text-gray-900">Context & Goals</h2>
-              <p className="text-gray-600 mt-2">Help us understand your business context and challenges</p>
-            </div>
-
-            <div className="space-y-4">
-              <div>
-                <Label className="text-base font-semibold">Industry/Niche</Label>
-                <Select value={formData.industry} onValueChange={(value) => setFormData({...formData, industry: value})}>
-                  <SelectTrigger className="mt-2">
-                    <SelectValue placeholder="Select your industry" />
-                  </SelectTrigger>
-                  <SelectContent>
-                    {INDUSTRY_OPTIONS.map((option) => (
-                      <SelectItem key={option.value} value={option.value}>
-                        {option.label}
-                      </SelectItem>
-                    ))}
-                  </SelectContent>
-                </Select>
-              </div>
-
-              <div>
-                <Label className="text-base font-semibold">Team Size</Label>
-                <Select value={formData.teamSize} onValueChange={(value) => setFormData({...formData, teamSize: value})}>
-                  <SelectTrigger className="mt-2">
-                    <SelectValue placeholder="Select your team size" />
-                  </SelectTrigger>
-                  <SelectContent>
-                    {TEAM_SIZE_OPTIONS.map((option) => (
-                      <SelectItem key={option.value} value={option.value}>
-                        {option.label}
-                      </SelectItem>
-                    ))}
-                  </SelectContent>
-                </Select>
-              </div>
-
-              <div>
-                <Label className="text-base font-semibold">Biggest Business Challenge</Label>
-                <RadioGroup 
-                  value={formData.biggestChallenge} 
-                  onValueChange={(value) => setFormData({...formData, biggestChallenge: value})}
-                  className="mt-2"
-                >
-                  {CHALLENGE_OPTIONS.map((option) => (
-                    <div key={option.value} className="flex items-center space-x-2">
-                      <RadioGroupItem value={option.value} id={option.value} />
-                      <Label htmlFor={option.value}>{option.label}</Label>
-                    </div>
-                  ))}
-                </RadioGroup>
-              </div>
-            </div>
+            <SelectCard
+              label="How fast do you follow up with new leads?"
+              options={FOLLOW_UP_OPTIONS}
+              value={formData.leadFollowUpTime}
+              onChange={(v) => setFormData({ ...formData, leadFollowUpTime: v })}
+            />
+            <SelectCard
+              label="What's your no-show rate?"
+              options={NO_SHOW_OPTIONS}
+              value={formData.noShowRate}
+              onChange={(v) => setFormData({ ...formData, noShowRate: v })}
+            />
+            <SelectCard
+              label="Biggest bottleneck right now"
+              options={BOTTLENECK_OPTIONS}
+              value={formData.biggestBottleneck}
+              onChange={(v) => setFormData({ ...formData, biggestBottleneck: v })}
+            />
           </motion.div>
         );
 
       case 3:
         return (
           <motion.div
-            initial={{ opacity: 0, x: 50 }}
+            key="step-3"
+            initial={{ opacity: 0, x: 40 }}
             animate={{ opacity: 1, x: 0 }}
-            exit={{ opacity: 0, x: -50 }}
+            exit={{ opacity: 0, x: -40 }}
+            transition={{ duration: 0.3 }}
             className="space-y-6"
           >
-            <div className="text-center mb-6">
-              <Calculator className="mx-auto h-12 w-12 text-blue-600 mb-4" />
-              <h2 className="text-2xl font-bold text-gray-900">Get Your Results</h2>
-              <p className="text-gray-600 mt-2">Enter your email to receive your personalized revenue opportunity report</p>
+            <div className="space-y-3">
+              <Label htmlFor="email" className="text-sm font-medium text-gray-400">
+                Email Address
+              </Label>
+              <Input
+                id="email"
+                type="email"
+                placeholder="you@company.com"
+                value={formData.email || ''}
+                onChange={(e) => setFormData({ ...formData, email: e.target.value })}
+                className="form-input-dark rounded-lg px-4 py-3 text-base"
+              />
             </div>
 
-            <div className="space-y-4">
-              <div>
-                <Label htmlFor="email" className="text-base font-semibold">Email Address</Label>
-                <Input
-                  id="email"
-                  type="email"
-                  placeholder="Enter your email address"
-                  value={formData.email || ''}
-                  onChange={(e) => setFormData({...formData, email: e.target.value})}
-                  className="mt-2"
-                />
-              </div>
-
-              <div className="bg-blue-50 p-4 rounded-lg">
-                <p className="text-sm text-blue-800">
-                  <strong>You'll receive:</strong>
-                </p>
-                <ul className="text-sm text-blue-700 mt-2 space-y-1">
-                  <li>• Your personalized revenue opportunity calculation</li>
-                  <li>• Industry-specific AI product recommendations</li>
-                  <li>• The complete 7-step AI product roadmap (PDF)</li>
-                  <li>• Exclusive bonuses and resources</li>
-                </ul>
-              </div>
+            <div className="card-dark rounded-xl p-5 space-y-3">
+              <p className="text-sm font-medium text-white">You'll see:</p>
+              <ul className="text-sm text-gray-400 space-y-2">
+                <li className="flex items-start gap-2">
+                  <span className="text-red-400 mt-0.5">$</span>
+                  Your estimated monthly revenue leak
+                </li>
+                <li className="flex items-start gap-2">
+                  <span className="text-amber-400 mt-0.5">%</span>
+                  A system health score for your marketing + sales
+                </li>
+                <li className="flex items-start gap-2">
+                  <span className="text-blue-400 mt-0.5">&rarr;</span>
+                  Personalized recommendations to close the gaps
+                </li>
+              </ul>
             </div>
+
+            <p className="text-xs text-gray-500 text-center">
+              No spam. Just your diagnostic results.
+            </p>
           </motion.div>
         );
 
@@ -363,59 +412,76 @@ export default function CalculatorForm({ onSubmit }: CalculatorFormProps) {
   };
 
   return (
-    <Card className="max-w-2xl mx-auto">
-      <CardContent className="p-8">
+    <div className="card-dark rounded-2xl max-w-2xl mx-auto overflow-hidden">
+      <div className="p-8">
+        {/* Progress bar */}
         <div className="mb-8">
-          <div className="flex justify-between items-center mb-2">
-            <span className="text-sm font-medium text-gray-600">
+          <div className="flex justify-between items-center mb-3">
+            <span className="text-xs font-medium text-gray-500 uppercase tracking-wider">
               Step {currentStep + 1} of {totalSteps}
             </span>
-            <span className="text-sm font-medium text-gray-600">
-              {Math.round(progress)}% Complete
+            <span className="text-xs font-medium text-gray-500">
+              {Math.round(progress)}%
             </span>
           </div>
-          <Progress value={progress} className="h-2" />
+          <div className="h-1 bg-white/6 rounded-full overflow-hidden">
+            <div
+              className="progress-bar h-full"
+              style={{ width: `${progress}%` }}
+            />
+          </div>
         </div>
 
-        <AnimatePresence mode="wait">
-          {renderStep()}
-        </AnimatePresence>
+        {/* Step header */}
+        <div className="text-center mb-8">
+          <StepIcon className="mx-auto h-10 w-10 text-blue-400 mb-4" />
+          <h2 className="text-xl font-bold text-white">{STEP_TITLES[currentStep]}</h2>
+          <p className="text-sm text-gray-400 mt-2 max-w-md mx-auto">
+            {STEP_DESCRIPTIONS[currentStep]}
+          </p>
+        </div>
 
-        <div className="flex justify-between mt-8">
+        {/* Step content */}
+        <AnimatePresence mode="wait">{renderStep()}</AnimatePresence>
+
+        {/* Navigation */}
+        <div className="flex justify-between mt-8 pt-6 border-t border-white/6">
           {currentStep > 0 ? (
-            <Button
-              variant="outline"
+            <button
+              type="button"
               onClick={handleBack}
-              className="flex items-center"
+              className="flex items-center gap-2 text-sm text-gray-400 hover:text-white transition-colors"
             >
-              <ArrowLeft className="w-4 h-4 mr-2" />
+              <ArrowLeft className="w-4 h-4" />
               Back
-            </Button>
+            </button>
           ) : (
             <div />
           )}
 
           {currentStep < totalSteps - 1 ? (
-            <Button
+            <button
+              type="button"
               onClick={handleNext}
               disabled={!isStepValid()}
-              className="flex items-center bg-blue-600 hover:bg-blue-700"
+              className="cta-btn-primary rounded-lg px-6 py-3 text-sm font-semibold text-white flex items-center gap-2 disabled:opacity-30 disabled:cursor-not-allowed disabled:shadow-none"
             >
               Continue
-              <ArrowRight className="w-4 h-4 ml-2" />
-            </Button>
+              <ArrowRight className="w-4 h-4" />
+            </button>
           ) : (
-            <Button
+            <button
+              type="button"
               onClick={handleSubmit}
               disabled={!isStepValid()}
-              className="flex items-center bg-green-600 hover:bg-green-700"
+              className="cta-btn-primary rounded-lg px-6 py-3 text-sm font-semibold text-white flex items-center gap-2 disabled:opacity-30 disabled:cursor-not-allowed disabled:shadow-none"
             >
-              Calculate My Opportunity
-              <Calculator className="w-4 h-4 ml-2" />
-            </Button>
+              See My Revenue Leak
+              <ArrowRight className="w-4 h-4" />
+            </button>
           )}
         </div>
-      </CardContent>
-    </Card>
+      </div>
+    </div>
   );
 }

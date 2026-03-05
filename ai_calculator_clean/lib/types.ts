@@ -1,29 +1,37 @@
 
-export interface CalculatorInputs {
-  currentRevenue: string;
-  businessModel: string;
-  currentDigitalProducts: string[];
-  teamSize: string;
+export interface DiagnosticInputs {
+  // Step 1: Your Business
+  monthlyRevenue: string;
   industry: string;
-  aiUsage: string;
-  biggestChallenge: string;
+  teamSize: string;
+
+  // Step 2: Your Marketing
+  clientSources: string[];
+  marketingSetup: string;
+  monthlyAdSpend: string;
+
+  // Step 3: Your Bottlenecks
+  leadFollowUpTime: string;
+  noShowRate: string;
+  biggestBottleneck: string;
 }
 
-export interface CalculatorResults {
-  monthlyOpportunity: number;
-  annualOpportunity: number;
-  aiAdvantage: number;
-  timeToBreakEven: number;
-  industryBenchmark: string;
+// Keep old name as alias for backwards compat in calculator page
+export type CalculatorInputs = DiagnosticInputs;
+
+export interface DiagnosticResults {
+  monthlyLeak: number;
+  annualLeak: number;
+  systemScore: number;
+  weeksToFix: number;
+  leakBreakdown: {
+    followUpLeak: number;
+    noShowLeak: number;
+    systemLeak: number;
+  };
   recommendations: string[];
+  severityLevel: 'low' | 'medium' | 'high' | 'critical';
 }
 
-export interface IndustryMultiplier {
-  name: string;
-  multiplier: number;
-}
-
-export interface AIEnhancementFactor {
-  level: string;
-  factor: number;
-}
+// Keep old name as alias
+export type CalculatorResults = DiagnosticResults;

@@ -10,35 +10,45 @@ datasource db {
 }
 
 model CalculatorResult {
-  id                    String   @id @default(cuid())
-  email                 String
-  currentRevenue        String
-  businessModel         String
-  currentDigitalProducts String[]
-  teamSize              String
-  industry              String
-  aiUsage               String
-  biggestChallenge      String
-  
+  id                 String   @id @default(cuid())
+  email              String
+
+  // Diagnostic inputs
+  monthlyRevenue     String
+  industry           String
+  teamSize           String
+  clientSources      String[]
+  marketingSetup     String
+  monthlyAdSpend     String
+  leadFollowUpTime   String
+  noShowRate         String
+  biggestBottleneck  String
+
   // Calculated results
-  monthlyOpportunity    Float
-  annualOpportunity     Float
-  aiAdvantage          Float
-  timeToBreakEven      Int
-  
+  monthlyLeak        Float
+  annualLeak         Float
+  systemScore        Int
+  weeksToFix         Int
+  followUpLeakPct    Int
+  noShowLeakPct      Int
+  systemLeakPct      Int
+  recommendations    String[]
+  severityLevel      String
+
   // Metadata
-  createdAt            DateTime @default(now())
-  updatedAt            DateTime @updatedAt
-  
+  ghlContactId       String?
+  createdAt          DateTime @default(now())
+  updatedAt          DateTime @updatedAt
+
   @@map("calculator_results")
 }
 
 model EmailCapture {
   id                String   @id @default(cuid())
   email             String   @unique
-  source            String   // "calculator", "landing", etc.
+  source            String
   calculatorResultId String?
   createdAt         DateTime @default(now())
-  
+
   @@map("email_captures")
 }
